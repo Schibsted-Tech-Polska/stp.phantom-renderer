@@ -120,7 +120,7 @@ phantomPage.setupResourceHandlers = function() {
             self.removeRequestIdFromRequestArray(response.id);
 
             self.logger.info('Opened Page Response requests left: ' + self.pageRequestsIds.length);
-            if(self.pageRequestsIds.length === 0 && response.id > 1) {
+            if(self.pageRequestsIds.length === 0) {
                 self.logger.info('Opened Page Response schedule checkIfPageLoaded');
                 self.checkIfPageLoadedTimeout = setTimeout(self.checkIfPageLoaded, self.checkIfPageLoadedTimeoutValue);
             }
