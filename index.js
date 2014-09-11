@@ -82,7 +82,6 @@ if(cluster.isMaster) {
             workerId: cluster.worker.id,
             blacklistedDomains: config.blacklistedDomains,
             pageRequestsBeforeRespawn: config.pageRequestsBeforeRespawn,
-            logRequests: config.logRequests,
             page404meta: config.page404meta
         });
         server.start();

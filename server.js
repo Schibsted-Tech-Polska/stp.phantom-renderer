@@ -112,7 +112,6 @@ Server.prototype.servePage = function() {
         res = request.res,
         params = {
             url: this.options.url + req.escapedFragmentUrl,
-            logRequests: this.options.logRequests,
             blacklistedDomains: this.options.blacklistedDomains
         };
 

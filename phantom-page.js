@@ -77,23 +77,17 @@ phantomPage.setupResourceHandlers = function() {
             isIframeUrl = self.isIframeUrl(request.url);
 
         if(isBlacklistedDomain || isIframeUrl) {
-            if(self.logRequests) {
-                self.logger.info('Opened Page Request (#' + request.id + ') ' + (isBlacklistedDomain ? 'domain blacklisted' : 'iframe url') + ': ' + request.url);
-            }
+            self.logger.info('Opened Page Request (#' + request.id + ') ' + (isBlacklistedDomain ? 'domain blacklisted' : 'iframe url') + ': ' + request.url);
             networkRequest.abort();
 
             if(self.checkIfPageLoadedTimeout) {
-                if(self.logRequests) {
-                    self.logger.info('Opened Page Request reschedule checkIfPageLoaded');
-                }
+                self.logger.info('Opened Page Request reschedule checkIfPageLoaded');
                 clearTimeout(self.checkIfPageLoadedTimeout);
                 self.checkIfPageLoadedTimeout = setTimeout(self.checkIfPageLoaded, self.checkIfPageLoadedTimeoutValue);
             }
         }
         else {
-            if(self.logRequests) {
-                self.logger.info('Opened Page Request (#' + request.id + '): ' + JSON.stringify(request.url));
-            }
+            self.logger.info('Opened Page Request (#' + request.id + '): ' + JSON.stringify(request.url));
             self.pageRequestsIds.push(request.id);
 
             // If request is not page open request
@@ -101,9 +95,7 @@ phantomPage.setupResourceHandlers = function() {
                 // resourceTimeout in phantomjs doest always work so this should if it
                 self.pageRequestTimeouts[request.id] = setTimeout(function() {
                     if(self.pageRequestsIds.indexOf(request.id) > -1) {
-                        if(self.logRequests) {
-                            self.logger.info('Opened Page Trigger Timeout (#' + request.id + '): ' + JSON.stringify(request.url));
-                        }
+                        self.logger.info('Opened Page Trigger Timeout (#' + request.id + '): ' + JSON.stringify(request.url));
                         // mock request stage
                         request.stage = 'end';
                         self.onOpenedPageResourceReceived(request);
@@ -116,9 +108,8 @@ phantomPage.setupResourceHandlers = function() {
 
     self.onOpenedPageResourceReceived = function(response) {
         if(response.stage === 'end' && self.pageRequestsIds.indexOf(response.id) > -1) {
-            if(self.logRequests) {
-                self.logger.info('Opened Page Response (#' + response.id + '): ' + JSON.stringify(response.url));
-            }
+            self.logger.info('Opened Page Response (#' + response.id + '): ' + JSON.stringify(response.url));
+
             if(self.pageRequestTimeouts[response.id]) {
                 clearTimeout(self.pageRequestTimeouts[response.id]);
             }
@@ -174,7 +165,6 @@ phantomPage.setupResourceHandlers = function() {
 
     self.setOptions = function(options) {
         self.url = options.url;
-        self.logRequests = typeof options.logRequests !== "undefined" ? options.logRequests : true;
         self.blacklistedDomains = options.blacklistedDomains || [];
     };
 
