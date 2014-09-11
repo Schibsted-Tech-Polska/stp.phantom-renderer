@@ -73,29 +73,22 @@ phantomPage.setupResourceHandlers = function() {
     };
 
     self.onOpenedPageResourceRequested = function(request, networkRequest) {
-        var hadCheck = false;
-        if(self.checkIfPageLoadedTimeout) {
-            hadCheck = true;
-            clearTimeout(self.checkIfPageLoadedTimeout);
-        }
+        var isBlacklistedDomain = self.isBlacklistedDomain(request.url),
+            isIframeUrl = self.isIframeUrl(request.url);
 
-        if(self.isBlacklistedDomain(request.url)) {
+        if(isBlacklistedDomain || isIframeUrl) {
             if(self.logRequests) {
-                self.logger.info('Opened Page Request (#' + request.id + ') domain blacklisted: ' + request.url);
+                self.logger.info('Opened Page Request (#' + request.id + ') ' + (isBlacklistedDomain ? 'domain blacklisted' : 'iframe url') + ': ' + request.url);
             }
             networkRequest.abort();
-            if(hadCheck) {
+
+            if(self.checkIfPageLoadedTimeout) {
+                if(self.logRequests) {
+                    self.logger.info('Opened Page Request reschedule checkIfPageLoaded');
+                }
+                clearTimeout(self.checkIfPageLoadedTimeout);
                 self.checkIfPageLoadedTimeout = setTimeout(self.checkIfPageLoaded, self.checkIfPageLoadedTimeoutValue);
             }
-        }
-        else if(self.isIframeUrl(request.url)) {
-            if(self.logRequests) {
-                self.logger.info('Opened Page Request (#' + request.id + ') iframe url: ' + request.url);
-            }
-            if(hadCheck) {
-                self.checkIfPageLoadedTimeout = setTimeout(self.checkIfPageLoaded, self.checkIfPageLoadedTimeoutValue);
-            }
-            networkRequest.abort();
         }
         else {
             if(self.logRequests) {
@@ -131,6 +124,7 @@ phantomPage.setupResourceHandlers = function() {
             }
             if(self.checkIfPageLoadedTimeout) {
                 clearTimeout(self.checkIfPageLoadedTimeout);
+                self.checkIfPageLoadedTimeout = null;
             }
             self.removeRequestIdFromRequestArray(response.id);
 
@@ -159,6 +153,7 @@ phantomPage.setupResourceHandlers = function() {
 
     self.checkIfPageLoaded = function() {
         self.logger.info('Check if page loaded');
+        self.checkIfPageLoadedTimeout = null;
         if(self.pageRequestsIds.length === 0) {
             if(self.pageLoadFinished) {
                 if(self.onPageLoaded) {
