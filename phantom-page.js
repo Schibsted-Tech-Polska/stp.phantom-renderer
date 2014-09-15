@@ -13,7 +13,10 @@ phantomPage.createWebPage = function() {
     self.pageRequestsIds = [];
     self.pageRequestTimeouts = {};
     self.pageLoadFinished = false;
-    self.checkIfPageLoadedTimeoutValue = 100;
+    self.checkIfPageLoadedFirstTimeoutValue = 3000;
+    self.checkIfPageLoadedDefaultTimeoutValue = 100;
+
+    self.checkIfPageLoadedTimeoutValue = this.checkIfPageLoadedFirstTimeoutValue;
     self.iframesUrls = [];
 
     // Set settings
@@ -92,6 +95,9 @@ phantomPage.setupResourceHandlers = function() {
 
             // If request is not page open request
             if(request.id > 1) {
+                // After first real request we update check if page loaded timeout
+                self.checkIfPageLoadedTimeoutValue = self.checkIfPageLoadedDefaultTimeoutValue;
+
                 // resourceTimeout in phantomjs doest always work so this should if it
                 self.pageRequestTimeouts[request.id] = setTimeout(function() {
                     if(self.pageRequestsIds.indexOf(request.id) > -1) {
