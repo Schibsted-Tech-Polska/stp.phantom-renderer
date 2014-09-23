@@ -135,12 +135,10 @@ Server.prototype.servePage = function() {
     .then(function(content){
         this.isRequestProcessed = false;
 
-        if(content.indexOf('meta name="' + this.options.page404meta + '"') === -1) {
-            res.end(content);
-        } else {
+        if(content.indexOf('meta name="' + this.options.page404meta + '"') > -1) {
             res.writeHead(404);
-            res.end('Error 404');
         }
+        res.end(content);
 
         this.servedPages += 1;
         this.logger.info('Page (' + req.url + ') served in ' + ((new Date() - req.startTime)/1000).toFixed(3) + 's, processed in ' + ((new Date() - req.startProcessingTime)/1000).toFixed(3) + 's');
