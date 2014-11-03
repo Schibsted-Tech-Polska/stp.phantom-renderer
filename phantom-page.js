@@ -186,7 +186,13 @@ phantomPage.setupResourceHandlers = function() {
                 return true;
             }
 
-            return (self.blacklistedDomains.indexOf(domain[1]) > -1);
+            domain = domain[1];
+
+            if(domain.indexOf("www.") === 0) {
+                domain = domain.replace('www.', '');
+            }
+
+            return (self.blacklistedDomains.indexOf(domain) > -1);
         }
 
         return false;
