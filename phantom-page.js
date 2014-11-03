@@ -181,8 +181,6 @@ phantomPage.setupResourceHandlers = function() {
         for (i = 0; i < self.blacklistedDomains.length; i++) {
             domain = url.match(domainRegex);
 
-            console.log(url + " " + domain);
-
             if(!domain || !domain[1]) {
                 self.logger.info('Domain can not be parsed. Request url: ' + url);
                 return true;
