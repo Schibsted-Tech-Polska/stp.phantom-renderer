@@ -174,14 +174,21 @@ phantomPage.setupResourceHandlers = function() {
         self.blacklistedDomains = options.blacklistedDomains || [];
     };
 
-    self.isBlacklistedDomain = function(url){
-        var i, regExp, self = this;
-        for(i = 0; i < self.blacklistedDomains.length; i++) {
-            regExp = new RegExp(self.blacklistedDomains[i], "gi");
-            if(regExp.test(url)) {
+    self.isBlacklistedDomain = function (url) {
+        var domainRegex = /^https?\:\/\/([^\/?#]+)(?:[\/?#]|$)/i,
+            self = this, domain, i;
+
+        for (i = 0; i < self.blacklistedDomains.length; i++) {
+            domain = url.match(domainRegex);
+
+            if(!domain || !domain[1]) {
+                self.logger.info('Domain can not be parsed. Request url: ' + url);
                 return true;
             }
+
+            return (self.blacklistedDomains.indexOf(domain[1]) > -1);
         }
+
         return false;
     };
 
