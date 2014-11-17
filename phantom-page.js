@@ -175,27 +175,16 @@ phantomPage.setupResourceHandlers = function() {
     };
 
     self.isBlacklistedDomain = function (url) {
-        var domainRegex = /^https?\:\/\/([^\/?#]+)(?:[\/?#]|$)/i,
-            self = this, domain, i;
-
-        for (i = 0; i < self.blacklistedDomains.length; i++) {
+        var self = this,
+            domainRegex = /^https?\:\/\/(?:www\.)?([^\/?#]+)(?:[\/?#]|$)/i,
             domain = url.match(domainRegex);
 
-            if(!domain || !domain[1]) {
-                self.logger.info('Domain can not be parsed. Request url: ' + url);
-                return true;
-            }
-
-            domain = domain[1];
-
-            if(domain.indexOf("www.") === 0) {
-                domain = domain.replace('www.', '');
-            }
-
-            return (self.blacklistedDomains.indexOf(domain) > -1);
+        if(!domain || !domain[1]) {
+            self.logger.info('Domain can not be parsed. Request url: ' + url);
+            return true;
         }
 
-        return false;
+        return (self.blacklistedDomains.indexOf(domain[1]) > -1);
     };
 
     self.isIframeUrl = function(url){
