@@ -24,7 +24,6 @@ if(argv.url) {
     config.url = argv.url;
 }
 
-
 if(!config.port) {
     logger.error('Please provide port with "--port" option');
     process.exit();
@@ -38,7 +37,7 @@ if(!config.url) {
 function spawnChild() {
     getPort(function (err, port) {
         var worker = cluster.fork();
-        workerServers.push({id: worker.id, port: config.port});
+        workerServers.push({id: worker.id, port: port});
 
         worker.send({port: port});
     });
