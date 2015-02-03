@@ -3,6 +3,9 @@ var config = {};
 config.blacklistedDomains = ['js.revsci.net', 'js-agent.newrelic.com', 'graph.facebook.com', 'cdn.api.twitter.com', 'burt.io'];
 config.workers = 2;
 config.pageRequestsBeforeRespawn = 10;
-config.page404meta = "phantom-renderer-404"
+config.page404meta = "phantom-renderer-404";
+config.port = 3000;
+config.url = "http://example.com"
+
 
 module.exports = config;

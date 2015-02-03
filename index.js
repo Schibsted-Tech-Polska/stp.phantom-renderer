@@ -1,26 +1,36 @@
 var cluster = require('cluster'),
     Server = require('./server'),
     logger = require('./logger').logger,
-    config = require('./config'),
     argv = require('minimist')(process.argv.slice(2)),
     httpProxy = require('http-proxy'),
     getPort = require('get-port'),
     http = require('http'),
     _ = require('lodash'),
-    i, server, proxy, port, url, workerServers = [];
+    config, i, server, proxy, workerServers = [];
 
-if(argv.port) {
-    port = argv.port;
+// Get proper config file
+if(argv.config) {
+    config = require('./' + argv.config);
 }
 else {
+    config = require('./config');
+}
+
+
+if(argv.port) {
+    config.port = argv.port;
+}
+if(argv.url) {
+    config.url = argv.url;
+}
+
+
+if(!config.port) {
     logger.error('Please provide port with "--port" option');
     process.exit();
 }
 
-if(argv.port) {
-    url = argv.url;
-}
-else {
+if(!config.url) {
     logger.error('Please provide url with "--url" option');
     process.exit();
 }
@@ -28,7 +38,7 @@ else {
 function spawnChild() {
     getPort(function (err, port) {
         var worker = cluster.fork();
-        workerServers.push({id: worker.id, port: port});
+        workerServers.push({id: worker.id, port: config.port});
 
         worker.send({port: port});
     });
@@ -66,8 +76,8 @@ if(cluster.isMaster) {
         res.end('Something went wrong');
     });
 
-    logger.info('Master listening on port ' + argv.port);
-    server.listen(argv.port);
+    logger.info('Master listening on port ' + config.port);
+    server.listen(config.port);
 
 } else {
     logger.info('Worker ' + cluster.worker.id + ' started');
@@ -77,7 +87,7 @@ if(cluster.isMaster) {
         var port = msg.port;
         server = new Server({
             logger: logger,
-            url: url,
+            url: config.url,
             port: port,
             workerId: cluster.worker.id,
             blacklistedDomains: config.blacklistedDomains,
