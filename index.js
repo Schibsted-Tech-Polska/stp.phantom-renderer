@@ -44,6 +44,29 @@ function spawnChild() {
 }
 
 if(cluster.isMaster) {
+
+    if (config.uid && process.getuid && process.setuid) {
+        logger.info('Current uid: ' + process.getuid());
+        try {
+            process.setuid(config.uid);
+            logger.info('New uid: ' + process.getuid());
+        }
+        catch (err) {
+            logger.info('Failed to set uid: ' + err);
+        }
+    }
+    if (config.gid && process.getgid && process.setgid) {
+        logger.info('Current gid: ' + process.getgid());
+        try {
+            process.setgid(config.gid);
+            logger.info('New gid: ' + process.getgid());
+        }
+        catch (err) {
+            logger.info('Failed to set gid: ' + err);
+        }
+    }
+
+
     for (i = 0; i < (config.workers || 2); i += 1) {
         logger.info('Starting worker thread #' + (i + 1));
         spawnChild();

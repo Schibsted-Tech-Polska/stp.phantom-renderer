@@ -7,5 +7,8 @@ config.page404meta = "phantom-renderer-404";
 config.port = 3000;
 config.url = "http://example.com"
 
+// Set user ID and group ID for process
+//config.uid = xxx;
+//config.gid = xxx;
 
 module.exports = config;
