@@ -61,7 +61,13 @@ phantomPage.getPageContent = function () {
 phantomPage.setupResourceHandlers = function() {
     var self = this;
 
-    self.logger = require(fs.workingDirectory + '/logger').logger;
+    var relativeScriptPath = require('system').args[0];
+    var absoluteScriptPath = fs.absolute(relativeScriptPath);
+    var absoluteScriptDir = absoluteScriptPath.substring(0, absoluteScriptPath.lastIndexOf('/'));
+
+    var projectPath = fs.absolute(absoluteScriptDir + '../../../../../');
+
+    self.logger = require(projectPath + '/logger').logger;
     self.logger.setProcessInfo('Worker id #' + self.workerId);
     self.logger.info('Opened Page setup');
 
