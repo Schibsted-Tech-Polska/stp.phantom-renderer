@@ -27,17 +27,30 @@ Server.prototype.start = function() {
 };
 
 Server.prototype.spawnPhantom = function() {
-    var deferred = Q.defer();
+    var disposeTimeout, deferred = Q.defer();
 
     this.servedPages = 0;
 
     if(this.phantom) {
-        this.phantom.dispose().then(function () {
-            this.logger.info("Phantom process terminated");
+        this.logger.info("Dispose Phantom");
+        try {
+            disposeTimeout = setTimeout(function() {
+                if(deferred.promise.isPending()) {
+                    this.logger.error("Phantom dispose timeout");
+                    deferred.resolve();
+                }
+            }.bind(this), 20000)
+            this.phantom.dispose().then(function () {
+                this.logger.info("Phantom process terminated");
+                deferred.resolve();
+            }.bind(this)).catch(function(error){
+                this.logger.error("Phantom process dispose error: " + error);
+            });
+        }
+        catch (error) {
+            this.logger.error("Phantom dispose error: " + error);
             deferred.resolve();
-        }.bind(this)).catch(function(error){
-            this.logger.error("Phantom process dispose error: " + error);
-        });
+        }
         this.phantom = null;
     }
     else {
@@ -45,6 +58,9 @@ Server.prototype.spawnPhantom = function() {
     }
 
     return deferred.promise.then(function() {
+        if(disposeTimeout) {
+            clearTimeout(disposeTimeout);
+        }
         return this.spawnPhantomProcess(3);
     }.bind(this))
     .then(function (phantom) {
