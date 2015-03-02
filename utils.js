@@ -1,15 +1,15 @@
 /*jshint sub: true */
 var url = require('url');
 
-var util = exports = module.exports = {};
+var utils = exports = module.exports = {};
 
 // Normalizes unimportant differences in URLs - e.g. ensures
 // http://google.com/ and http://google.com normalize to the same string
-util.normalizeUrl = function (u) {
+utils.normalizeUrl = function (u) {
     return url.format(url.parse(u, true));
 };
 
-util.getEscapedFragmentUrl = function (req) {
+utils.getEscapedFragmentUrl = function (req) {
     var decodedUrl
         , parts;
 

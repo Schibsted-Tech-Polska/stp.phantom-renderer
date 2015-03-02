@@ -82,18 +82,20 @@ phantomPage.setupResourceHandlers = function() {
     };
 
     self.onOpenedPageResourceRequested = function(request, networkRequest) {
-        var isBlacklistedDomain = self.isBlacklistedDomain(request.url),
-            isIframeUrl = self.isIframeUrl(request.url);
-
-        if(isBlacklistedDomain || isIframeUrl) {
-            self.logger.info('Opened Page Request (#' + request.id + ') ' + (isBlacklistedDomain ? 'domain blacklisted' : 'iframe url') + ': ' + request.url);
+        if(self.isDataUrl(request.url)) {
+            self.logger.info('Opened Page Request (#' + request.id + ') data url: ' + self.formatUrl(request.url));
             networkRequest.abort();
-
-            if(self.checkIfPageLoadedTimeout) {
-                self.logger.info('Opened Page Request reschedule checkIfPageLoaded');
-                clearTimeout(self.checkIfPageLoadedTimeout);
-                self.checkIfPageLoadedTimeout = setTimeout(self.checkIfPageLoaded, self.checkIfPageLoadedTimeoutValue);
-            }
+            self.rescheduleCheckIfPageLoaded();
+        }
+        else if (self.isBlacklistedDomain(request.url)) {
+            self.logger.info('Opened Page Request (#' + request.id + ') domain blacklisted: ' + self.formatUrl(request.url));
+            networkRequest.abort();
+            self.rescheduleCheckIfPageLoaded();
+        }
+        else if(self.isIframeUrl(request.url)) {
+            self.logger.info('Opened Page Request (#' + request.id + ') iframe url: ' + self.formatUrl(request.url));
+            networkRequest.abort();
+            self.rescheduleCheckIfPageLoaded();
         }
         else {
             self.logger.info('Opened Page Request (#' + request.id + '): ' + JSON.stringify(request.url));
@@ -175,6 +177,14 @@ phantomPage.setupResourceHandlers = function() {
         }
     };
 
+    self.rescheduleCheckIfPageLoaded = function() {
+        if(self.checkIfPageLoadedTimeout) {
+            self.logger.info('Opened Page Request reschedule checkIfPageLoaded');
+            clearTimeout(self.checkIfPageLoadedTimeout);
+            self.checkIfPageLoadedTimeout = setTimeout(self.checkIfPageLoaded, self.checkIfPageLoadedTimeoutValue);
+        }
+    }
+
     self.setOptions = function(options) {
         self.url = options.url;
         self.blacklistedDomains = options.blacklistedDomains || [];
@@ -201,6 +211,17 @@ phantomPage.setupResourceHandlers = function() {
             }
         }
         return false;
+    };
+
+    self.formatUrl = function (url) {
+        if (self.isDataUrl(url)) {
+            url = url.substring(0, 200) + '...';
+        }
+        return url;
+    };
+
+    self.isDataUrl = function (url) {
+        return url.indexOf('data:') === 0;
     };
 
     self.logger.info('Opened Page setup done');
