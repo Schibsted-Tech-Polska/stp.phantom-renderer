@@ -114,7 +114,8 @@ if(cluster.isMaster) {
             workerId: cluster.worker.id,
             blacklistedDomains: config.blacklistedDomains,
             pageRequestsBeforeRespawn: config.pageRequestsBeforeRespawn,
-            page404meta: config.page404meta
+            page404meta: config.page404meta,
+            maxAge: config.maxAge
         });
         server.start();
     });
