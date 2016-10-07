@@ -153,6 +153,10 @@ Server.prototype.servePage = function() {
 
         if(content.indexOf('meta name="' + this.options.page404meta + '"') > -1) {
             res.writeHead(404);
+        } else if(this.options.maxAge) {
+            res.writeHead(200, {
+               'Cache-Control': 'public, max-age=' + this.options.maxAge
+            })
         }
         res.end(content);
 
