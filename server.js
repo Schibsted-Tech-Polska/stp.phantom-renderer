@@ -10,6 +10,7 @@ var Server = function(options) {
     this.options.port = this.options.port || 3000;
 
     this.logger = options.logger;
+    this.debug = options.debug;
 
     this.requests = [];
     this.servedPages = 0;
@@ -39,7 +40,7 @@ Server.prototype.spawnPhantom = function() {
                     this.logger.error("Phantom dispose timeout");
                     deferred.resolve();
                 }
-            }.bind(this), 20000)
+            }.bind(this), 20000);
             this.phantom.dispose().then(function () {
                 this.logger.info("Phantom process terminated");
                 deferred.resolve();
@@ -65,6 +66,22 @@ Server.prototype.spawnPhantom = function() {
     }.bind(this))
     .then(function (phantom) {
         this.logger.info('PhantomJS spawned');
+        if(this.debug.phantom) {
+            this.logger.debug(phantom.childProcess.spawnfile);
+
+            phantom.onError = function(msg, trace) {
+                var msgStack = ['PHANTOM ERROR: ' + msg];
+
+                if(trace && trace.length) {
+                    msgStack.push('TRACE:');
+                    trace.forEach(function(t) {
+                        msgStack.push(' -=> ' + (t.file || t.sourceURL) + ': ' + t.line + (t.function ? ' (in function "' + t.function + '")' : ''));
+                    });
+                }
+
+                this.logger.error(msgStack.join('\n'));
+            };
+        }
 
         return phantom.run(this.options.workerId, function(workerId){
            this.workerId = workerId;
@@ -94,6 +111,14 @@ Server.prototype.spawnPhantomProcess = function(count) {
 
 Server.prototype.onRequest = function(req, res) {
     this.logger.info('New request url: ' + req.url + (typeof req.headers['user-agent'] !== 'undefined' ? ', user agent: ' + req.headers['user-agent'] : ''));
+
+    if(this.options.acceptedUrls && !utils.isAcceptedUrl(req, this.options.acceptedUrls)) {
+        this.logger.warn('Rejecting request: ' + req.url + ' does not match: ' + this.options.acceptedUrls);
+        res.writeHead(400);
+        res.end('Bad request');
+
+        return;
+    }
 
     req.escapedFragmentUrl = utils.getEscapedFragmentUrl(req);
     if(req.escapedFragmentUrl) {
@@ -136,7 +161,7 @@ Server.prototype.servePage = function() {
 
     this.logger.info('Serving page: ' +req.url);
 
-    this.phantom.run(phantomPage.createWebPage)
+    this.phantom.run(this.debug, phantomPage.createWebPage)
     .then(function() {
         return this.phantom.run(params, function(options) {
             this.setOptions(options);
@@ -156,7 +181,7 @@ Server.prototype.servePage = function() {
         } else if(this.options.maxAge) {
             res.writeHead(200, {
                'Cache-Control': 'public, max-age=' + this.options.maxAge
-            })
+            });
         }
         res.end(content);
 

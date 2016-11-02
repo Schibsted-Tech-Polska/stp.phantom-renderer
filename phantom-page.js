@@ -1,10 +1,10 @@
 /*globals webpage, fs*/
 var phantomPage = {};
 
-phantomPage.createWebPage = function() {
+phantomPage.createWebPage = function(debug, resolve) {
     var self = this;
 
-    self.logger.info('Opened Page create web page');
+    self.logger.info('Opened Page: create web page');
 
     if(self.page) {
         self.page.close();
@@ -41,13 +41,34 @@ phantomPage.createWebPage = function() {
 
     self.page.onNavigationRequested = self.onOpenedPageNavigationRequested;
 
-    self.logger.info('Opened Page web page created');
+    if(debug && debug.js) {
+        self.page.onError = function(msg, trace) {
+            var msgStack = ['WEBPAGE ERROR: ' + msg];
+
+            if(trace && trace.length) {
+                msgStack.push('TRACE:');
+                trace.forEach(function(t) {
+                    msgStack.push(' -=> ' + (t.file || t.sourceURL) + ': ' + t.line + (t.function ? ' (in function "' + t.function + '")' : ''));
+                });
+            }
+
+            self.logger.warn(msgStack.join('\n'));
+        };
+
+        self.page.onConsoleMessage = function(msg, lineNum, sourceId) {
+            self.logger.debug('CONSOLE: ' + msg + ' (from line #' + lineNum + ' in "' + sourceId + '")');
+        };
+    }
+
+    self.logger.info('Opened Page: web page created');
+
+    resolve(self);
 };
 
 phantomPage.openWebPage = function (resolve) {
     var self = this;
 
-    self.logger.info('Opened Page open web page: ' + self.url);
+    self.logger.info('Opened Page: open web page: ' + self.url);
 
     self.onPageLoaded = resolve;
 
@@ -69,7 +90,7 @@ phantomPage.setupResourceHandlers = function() {
 
     self.logger = require(projectPath + '/logger').logger;
     self.logger.setProcessInfo('Worker id #' + self.workerId);
-    self.logger.info('Opened Page setup');
+    self.logger.info('Opened Page: setup');
 
     self.onOpenedPageLoadFinished = function() {
         self.pageLoadFinished = true;
@@ -83,22 +104,22 @@ phantomPage.setupResourceHandlers = function() {
 
     self.onOpenedPageResourceRequested = function(request, networkRequest) {
         if(self.isDataUrl(request.url)) {
-            self.logger.info('Opened Page Request (#' + request.id + ') data url: ' + self.formatUrl(request.url));
+            self.logger.info('Opened Page: Request (#' + request.id + ') data url: ' + self.formatUrl(request.url));
             networkRequest.abort();
             self.rescheduleCheckIfPageLoaded();
         }
         else if (self.isBlacklistedDomain(request.url)) {
-            self.logger.info('Opened Page Request (#' + request.id + ') domain blacklisted: ' + self.formatUrl(request.url));
+            self.logger.info('Opened Page: Request (#' + request.id + ') domain blacklisted: ' + self.formatUrl(request.url));
             networkRequest.abort();
             self.rescheduleCheckIfPageLoaded();
         }
         else if(self.isIframeUrl(request.url)) {
-            self.logger.info('Opened Page Request (#' + request.id + ') iframe url: ' + self.formatUrl(request.url));
+            self.logger.info('Opened Page: Request (#' + request.id + ') iframe url: ' + self.formatUrl(request.url));
             networkRequest.abort();
             self.rescheduleCheckIfPageLoaded();
         }
         else {
-            self.logger.info('Opened Page Request (#' + request.id + '): ' + JSON.stringify(request.url));
+            self.logger.info('Opened Page: Request (#' + request.id + '): ' + JSON.stringify(request.url));
             self.pageRequestsIds.push(request.id);
 
             // If request is not page open request
@@ -109,7 +130,7 @@ phantomPage.setupResourceHandlers = function() {
                 // resourceTimeout in phantomjs doest always work so this should if it
                 self.pageRequestTimeouts[request.id] = setTimeout(function() {
                     if(self.pageRequestsIds.indexOf(request.id) > -1) {
-                        self.logger.info('Opened Page Trigger Timeout (#' + request.id + '): ' + JSON.stringify(request.url));
+                        self.logger.info('Opened Page: Trigger Timeout (#' + request.id + '): ' + JSON.stringify(request.url));
                         // mock request stage
                         request.stage = 'end';
                         self.onOpenedPageResourceReceived(request);
@@ -122,7 +143,7 @@ phantomPage.setupResourceHandlers = function() {
 
     self.onOpenedPageResourceReceived = function(response) {
         if(response.stage === 'end' && self.pageRequestsIds.indexOf(response.id) > -1) {
-            self.logger.info('Opened Page Response (#' + response.id + '): ' + JSON.stringify(response.url));
+            self.logger.info('Opened Page: Response (#' + response.id + '): ' + JSON.stringify(response.url));
 
             if(self.pageRequestTimeouts[response.id]) {
                 clearTimeout(self.pageRequestTimeouts[response.id]);
@@ -133,9 +154,9 @@ phantomPage.setupResourceHandlers = function() {
             }
             self.removeRequestIdFromRequestArray(response.id);
 
-            self.logger.info('Opened Page Response requests left: ' + self.pageRequestsIds.length);
+            self.logger.info('Opened Page: Response requests left: ' + self.pageRequestsIds.length);
             if(self.pageRequestsIds.length === 0) {
-                self.logger.info('Opened Page Response schedule checkIfPageLoaded');
+                self.logger.info('Opened Page: Response schedule checkIfPageLoaded');
                 self.checkIfPageLoadedTimeout = setTimeout(self.checkIfPageLoaded, self.checkIfPageLoadedTimeoutValue);
             }
         }
@@ -179,11 +200,11 @@ phantomPage.setupResourceHandlers = function() {
 
     self.rescheduleCheckIfPageLoaded = function() {
         if(self.checkIfPageLoadedTimeout) {
-            self.logger.info('Opened Page Request reschedule checkIfPageLoaded');
+            self.logger.info('Opened Page: Request reschedule checkIfPageLoaded');
             clearTimeout(self.checkIfPageLoadedTimeout);
             self.checkIfPageLoadedTimeout = setTimeout(self.checkIfPageLoaded, self.checkIfPageLoadedTimeoutValue);
         }
-    }
+    };
 
     self.setOptions = function(options) {
         self.url = options.url;
@@ -224,7 +245,7 @@ phantomPage.setupResourceHandlers = function() {
         return url.indexOf('data:') === 0;
     };
 
-    self.logger.info('Opened Page setup done');
+    self.logger.info('Opened Page: setup done');
 };
 
 module.exports = phantomPage;
