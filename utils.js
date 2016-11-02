@@ -9,21 +9,33 @@ utils.normalizeUrl = function (u) {
     return url.format(url.parse(u, true));
 };
 
-utils.getEscapedFragmentUrl = function (req) {
-    var decodedUrl
-        , parts;
+utils.decodeUrl = function(url) {
+    var result;
 
     try {
-        decodedUrl = decodeURIComponent(req.url);
-    } catch (e) {
-        decodedUrl = req.url;
+        result = decodeURIComponent(url);
+    } catch(e) {
+        result = url;
     }
 
-    parts = url.parse(decodedUrl, true);
+    return result;
+};
+
+utils.getEscapedFragmentUrl = function (req) {
+    var decodedUrl = utils.decodeUrl(req.url);
+    var parts = url.parse(decodedUrl, true);
 
     // Remove the _escaped_fragment_ query parameter
     if (parts.query.hasOwnProperty('_escaped_fragment_')) {
         return  '#!' + parts.query['_escaped_fragment_'];
     }
     return null;
+};
+
+utils.isAcceptedUrl = function(req, pattern) {
+    var decodedUrl = utils.decodeUrl(req.url);
+    var parts = url.parse(decodedUrl, true);
+    var re = new RegExp(pattern);
+
+    return re.test(parts.path);
 };

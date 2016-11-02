@@ -8,7 +8,8 @@ logger = {
     events: {
         info: { color: 'green', event: 'info' },
         warn: { color: 'yellow', event: 'warning' },
-        error: { color: 'red', event: 'error' }
+        error: { color: 'red', event: 'error' },
+        debug: { color: 'blue', event: 'debug' }
     },
     info: function(message) {
         logger.write("info", message);
@@ -18,6 +19,9 @@ logger = {
     },
     warn: function(message) {
         logger.write("warn", message);
+    },
+    debug: function(message) {
+        logger.write('debug', message);
     },
     write: function(type, message) {
         var processInfoMsg = logger.processInfo ? '  - ' + logger.processInfo : '';
@@ -32,5 +36,6 @@ exports.logger = {
     setProcessInfo: logger.setProcessInfo,
     info: logger.info,
     error: logger.error,
-    warn: logger.warn
+    warn: logger.warn,
+    debug: logger.debug
 };
