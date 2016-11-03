@@ -161,7 +161,7 @@ Server.prototype.servePage = function() {
 
     this.logger.info('Serving page: ' +req.url);
 
-    this.phantom.run(this.debug, phantomPage.createWebPage)
+    this.phantom.run(this.options, phantomPage.createWebPage)
     .then(function() {
         return this.phantom.run(params, function(options) {
             this.setOptions(options);

@@ -1,7 +1,7 @@
 /*globals webpage, fs*/
 var phantomPage = {};
 
-phantomPage.createWebPage = function(debug, resolve) {
+phantomPage.createWebPage = function(options, resolve) {
     var self = this;
 
     self.logger.info('Opened Page: create web page');
@@ -21,7 +21,7 @@ phantomPage.createWebPage = function(debug, resolve) {
 
     // Set settings
     self.page.settings.loadImages = false;
-    self.page.settings.resourceTimeout = 15000;
+    self.page.settings.resourceTimeout = options.resourceTimeout || 15000;
 
     // Set viewport
     self.page.viewportSize = {
@@ -41,7 +41,7 @@ phantomPage.createWebPage = function(debug, resolve) {
 
     self.page.onNavigationRequested = self.onOpenedPageNavigationRequested;
 
-    if(debug && debug.js) {
+    if(options.debug && options.debug.js) {
         self.page.onError = function(msg, trace) {
             var msgStack = ['WEBPAGE ERROR: ' + msg];
 
