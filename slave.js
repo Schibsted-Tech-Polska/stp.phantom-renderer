@@ -45,7 +45,8 @@ Slave.prototype.onMessagePort = function(port) {
         pageRequestsBeforeRespawn: this.config.pageRequestsBeforeRespawn,
         page404meta: this.config.page404meta,
         maxAge: this.config.maxAge,
-        debug: this.debug
+        debug: this.debug,
+        resourceTimeout: this.config.resourceTimeout
     });
     this.server.start();
 };
